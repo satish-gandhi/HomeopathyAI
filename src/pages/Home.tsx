@@ -13,14 +13,46 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 function Home() {
   const [username, setUsername] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userDataString = localStorage.getItem("currentUser");
-    if (userDataString) {
-      const userData = JSON.parse(userDataString);
-      setUsername(userData.username);
-    }
+    const verifyUser = async () => {
+      const userDataString = localStorage.getItem("currentUser");
+
+      if (!userDataString) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const userData = JSON.parse(userDataString);
+        const response = await fetch("http://localhost:5000/verify-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: userData.email }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUsername(data.user.username);
+          setIsLoggedIn(true);
+        } else {
+          // User not found in database, clear localStorage
+          localStorage.removeItem("currentUser");
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error("Error verifying user:", error);
+        localStorage.removeItem("currentUser");
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyUser();
   }, []);
 
   const LogoutHandle = () => {
@@ -96,26 +128,42 @@ function Home() {
             </Badge>
           </div>
           <div className="flex items-center gap-4">
-            <Avatar>
-              <AvatarFallback className="bg-zinc-900 text-white">
-                {getInitials(username || "User")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium">{username}</p>
-            </div>
-            <Button onClick={LogoutHandle} variant="outline">
-              Logout
-            </Button>
+            {isLoggedIn && (
+              <>
+                <Avatar>
+                  <AvatarFallback className="bg-zinc-900 text-white">
+                    {getInitials(username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="hidden sm:block">
+                  <p className="text-sm font-medium">{username}</p>
+                </div>
+                <Button onClick={LogoutHandle} variant="outline">
+                  Logout
+                </Button>
+              </>
+            )}
+            {!isLoggedIn && !isLoading && (
+              <div className="flex items-center gap-2">
+                <Button onClick={() => navigate("/login")} variant="outline">
+                  Sign In
+                </Button>
+                <Button onClick={() => navigate("/signup")}>
+                  Sign Up
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 text-center">
-        <Badge className="mb-4" variant="outline">
-          Welcome back, {username}!
-        </Badge>
+        {isLoggedIn && (
+          <Badge className="mb-4" variant="outline">
+            Welcome back, {username}!
+          </Badge>
+        )}
         <h2 className="text-5xl font-bold text-zinc-900 mb-6">
           Your Path to Natural Healing
         </h2>
