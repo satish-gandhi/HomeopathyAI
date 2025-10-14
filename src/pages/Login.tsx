@@ -31,7 +31,7 @@ function Login() {
 
       if (username === savedusername && password === savedpassword) {
         console.log("Authenticated!");
-        navigate("/home");
+        navigate("/dashboard");
       } else {
         setError("Invalid username or password");
       }
