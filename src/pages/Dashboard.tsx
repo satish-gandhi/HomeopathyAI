@@ -19,9 +19,14 @@ function Dashboard() {
   useEffect(() => {
     const userDataString = localStorage.getItem("currentUser");
     if (userDataString) {
-      const userData = JSON.parse(userDataString);
-      setUsername(userData.username);
-      setEmail(userData.email);
+      try {
+        const userData = JSON.parse(userDataString);
+        setUsername(userData.username || userData.name || "User");
+        setEmail(userData.email || "");
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+        navigate("/login");
+      }
     } else {
       // Redirect to login if not authenticated
       navigate("/login");

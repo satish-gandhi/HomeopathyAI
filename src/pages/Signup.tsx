@@ -17,9 +17,10 @@ function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -34,56 +35,41 @@ function Signup() {
       return;
     }
 
+    setIsLoading(true);
+
     const userData = {
       username: username,
       email: email,
       password: password,
     };
-    // const userDataString=JSON.stringify(userData);
-    // localStorage.setItem('currentUser', userDataString);
-    // console.log('User Data stored to local storage');
-    try{
-        const response = await fetch('http://localhost:5000/signup', {
-            method : 'POST',
-            headers : {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        });
-        const data = await response.json();
-        console.log('Server Response', data)
-    }
-    catch (error){
-        console.error('Error', error);
-    }
-    console.log('User Data: ', userData);
-    setUsername('');
-    setEmail('');
-    setPassword('');
-    }
-    
-    return (
-        <div>
-        <h1>Signup Page</h1>
-       <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)}/>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)}/>
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)}/>
-        <button type="submit"> Submit </button>
-       </form>
-    const userDataString = JSON.stringify(userData);
-    localStorage.setItem("currentUser", userDataString);
-    console.log("User Data stored to local storage");
-    console.log("User Data: ", userData);
 
-    // Navigate to login after successful signup
-    navigate("/login");
+    try {
+      const response = await fetch("http://localhost:5000/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Signup Success", data);
+        navigate("/login");
+      } else {
+        setError(data.message || "Signup failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error", error);
+      setError("Unable to connect to server. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo/Brand */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className="text-4xl">🌿</span>
@@ -95,7 +81,6 @@ function Signup() {
           <p className="text-zinc-600">Natural healing powered by AI</p>
         </div>
 
-        {/* Signup Card */}
         <Card>
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">
@@ -122,6 +107,7 @@ function Signup() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -134,6 +120,7 @@ function Signup() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -146,14 +133,15 @@ function Signup() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <p className="text-xs text-muted-foreground">
                   Must be at least 6 characters long
                 </p>
               </div>
 
-              <Button type="submit" className="w-full">
-                Create Account
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
@@ -171,7 +159,6 @@ function Signup() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
         <p className="text-center text-sm text-zinc-600 mt-8">
           By creating an account, you agree to our Terms of Service and Privacy
           Policy
