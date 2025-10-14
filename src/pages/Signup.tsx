@@ -17,7 +17,6 @@ function Signup() {
     localStorage.setItem('currentUser', userDataString);
     console.log('User Data stored to local storage');
     console.log('User Data: ', userData);
-
     setUsername('');
     setEmail('');
     setPassword('');
