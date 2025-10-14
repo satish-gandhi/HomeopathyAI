@@ -5,7 +5,7 @@ function Signup() {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const userData = {
@@ -13,9 +13,23 @@ function Signup() {
         email: email,
         password: password
     };
-    const userDataString=JSON.stringify(userData);
-    localStorage.setItem('currentUser', userDataString);
-    console.log('User Data stored to local storage');
+    // const userDataString=JSON.stringify(userData);
+    // localStorage.setItem('currentUser', userDataString);
+    // console.log('User Data stored to local storage');
+    try{
+        const response = await fetch('http://localhost:5000/signup', {
+            method : 'POST',
+            headers : {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        const data = await response.json();
+        console.log('Server Response', data)
+    }
+    catch (error){
+        console.error('Error', error);
+    }
     console.log('User Data: ', userData);
     setUsername('');
     setEmail('');
